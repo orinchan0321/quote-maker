@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MitsumoList - ログイン</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="page-header">
+    <h1>MitsumoList</h1>
+    <p class="subtitle">見積書をスマートに管理</p>
+  </header>
+
+  <main class="card">
+    <h2>ログイン</h2>
+    <form id="loginForm">
+      <label for="username">ユーザー名</label>
+      <input type="text" id="username" required />
+
+      <label for="password">パスワード</label>
+      <input type="password" id="password" required />
+
+      <button type="submit">ログイン</button>
+    </form>
+    <p id="message"></p>
+    <p class="link">新規登録は <a href="register.html">こちら</a></p>
+  </main>
+
+  <script>
+    async function hashPassword(password) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    function getUsers() {
+      return JSON.parse(localStorage.getItem("users") || "{}");
+    }
+
+    document.getElementById("loginForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const message = document.getElementById("message");
+
+      const hashed = await hashPassword(password);
+      const users = getUsers();
+
+      if (users[username] && users[username] === hashed) {
+        message.style.color = "green";
+        message.textContent = "ログイン成功！";
+        setTimeout(() => {
+          window.location.href = "dashboard.html";
+        }, 1000);
+      } else {
+        message.style.color = "red";
+        message.textContent = "ユーザー名またはパスワードが間違っています。";
+      }
+    });
+  </script>
+</body>
+</html>

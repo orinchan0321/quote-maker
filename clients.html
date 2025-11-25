@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MitsumoList - 顧客管理</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="page-header">
+    <h1>MitsumoList</h1>
+    <p class="subtitle">見積書を簡単に、スマートに管理</p>
+  </header>
+
+  <main class="card">
+    <h2>顧客一覧</h2>
+    <button onclick="window.location.href='customer-form.html'">顧客登録</button>
+    <input type="text" id="searchBox" placeholder="顧客名で検索" />
+    <ul id="customerList"></ul>
+  </main>
+
+  <script>
+    function getCurrentUser() {
+      return localStorage.getItem("currentUser");
+    }
+
+    function getUserData(username) {
+      const allData = JSON.parse(localStorage.getItem("userData") || "{}");
+      return allData[username] || { estimates: [], customers: [] };
+    }
+
+    function saveUserData(username, data) {
+      const allData = JSON.parse(localStorage.getItem("userData") || "{}");
+      allData[username] = data;
+      localStorage.setItem("userData", JSON.stringify(allData));
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const user = getCurrentUser();
+      if (!user) {
+        alert("ログインしてください");
+        window.location.href = "login.html";
+        return;
+      }
+
+      const list = document.getElementById("customerList");
+      const searchBox = document.getElementById("searchBox");
+
+      let data = getUserData(user);
+
+      function renderList(customers) {
+        list.innerHTML = "";
+        customers.forEach((c, index) => {
+          const li = document.createElement("li");
+          li.classList.add("customer-item");
+
+          const textSpan = document.createElement("span");
+          textSpan.textContent = `${c.name}（担当: ${c.contactPerson}）`;
+
+          const editBtn = document.createElement("button");
+          editBtn.textContent = "編集";
+          editBtn.classList.add("small-btn");
+          editBtn.addEventListener("click", () => loadCustomer(index));
+
+          const delBtn = document.createElement("button");
+          delBtn.textContent = "削除";
+          delBtn.classList.add("small-btn");
+          delBtn.addEventListener("click", () => deleteCustomer(index));
+
+          const btnContainer = document.createElement("span");
+          btnContainer.classList.add("btn-container");
+          btnContainer.appendChild(editBtn);
+          btnContainer.appendChild(delBtn);
+
+          li.appendChild(textSpan);
+          li.appendChild(btnContainer);
+          list.appendChild(li);
+        });
+      }
+
+      function loadCustomer(index) {
+        localStorage.setItem("editCustomerIndex", index);
+        window.location.href = "customer-form.html";
+      }
+
+      function deleteCustomer(index) {
+        if (confirm("この顧客を削除しますか？")) {
+          data.customers.splice(index, 1);
+          saveUserData(user, data);
+          renderList(data.customers);
+        }
+      }
+
+      searchBox.addEventListener("input", () => {
+        const keyword = searchBox.value.toLowerCase();
+        const filtered = data.customers.filter(c =>
+          c.name.toLowerCase().includes(keyword)
+        );
+        renderList(filtered);
+      });
+
+      renderList(data.customers);
+    });
+  </script>
+</body>
+</html>

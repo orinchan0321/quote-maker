@@ -124,3 +124,38 @@ button:hover {
   background-color: #f8d7da;
   color: #a94442;
 }
+
+#customerList li {
+  display: flex;
+  justify-content: space-between; /* 左に社名、右にボタン */
+  align-items: center;
+  margin: 5px 0;
+}
+
+    /* 顧客一覧だけスクロールできるようにする */
+    #customerList {
+      max-height: 400px;   /* 高さを制限（必要に応じて調整） */
+      overflow-y: auto;    /* 縦スクロールを有効化 */
+      padding: 0;
+      margin: 0;
+      list-style: none;
+      border: 1px solid #ccc;
+    }
+
+    .customer-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .btn-container {
+      display: flex;
+      gap: 5px;
+    }
+
+    .small-btn {
+      font-size: 12px;
+      padding: 2px 6px;
+    }

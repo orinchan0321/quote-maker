@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MitsumoList - 顧客登録</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="page-header">
+    <h1>MitsumoList</h1>
+    <p class="subtitle">見積書を簡単に、スマートに管理</p>
+  </header>
+
+  <main class="card">
+    <h2>顧客登録 / 編集</h2>
+    <form id="customerForm">
+      <label>顧客名</label>
+      <input type="text" id="name" required />
+
+      <label>住所</label>
+      <input type="text" id="address" />
+
+      <label>担当者</label>
+      <input type="text" id="contactPerson" />
+
+      <label>適格請求書発行事業者番号</label>
+      <input type="text" id="invoiceNumber" />
+
+      <button type="submit">保存</button>
+    </form>
+    <p id="message"></p>
+    <p><a href="clients.html">顧客一覧へ戻る</a></p>
+  </main>
+
+  <script>
+    function getCurrentUser() {
+      return localStorage.getItem("currentUser");
+    }
+
+    function getUserData(username) {
+      const allData = JSON.parse(localStorage.getItem("userData") || "{}");
+      return allData[username] || { estimates: [], customers: [] };
+    }
+
+    function saveUserData(username, data) {
+      const allData = JSON.parse(localStorage.getItem("userData") || "{}");
+      allData[username] = data;
+      localStorage.setItem("userData", JSON.stringify(allData));
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const user = getCurrentUser();
+      if (!user) {
+        alert("ログインしてください");
+        window.location.href = "login.html";
+        return;
+      }
+
+      let data = getUserData(user);
+      const form = document.getElementById("customerForm");
+      const message = document.getElementById("message");
+
+      // 編集対象インデックスを取得
+      const editIndex = localStorage.getItem("editCustomerIndex");
+
+      if (editIndex !== null) {
+        const c = data.customers[editIndex];
+        if (c) {
+          // フォームに既存データを表示
+          document.getElementById("name").value = c.name;
+          document.getElementById("address").value = c.address;
+          document.getElementById("contactPerson").value = c.contactPerson;
+          document.getElementById("invoiceNumber").value = c.invoiceNumber;
+        }
+      }
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const customer = {
+          name: document.getElementById("name").value,
+          address: document.getElementById("address").value,
+          contactPerson: document.getElementById("contactPerson").value,
+          invoiceNumber: document.getElementById("invoiceNumber").value,
+        };
+
+        if (editIndex !== null) {
+          // 編集モード → 上書き
+          data.customers[editIndex] = customer;
+          localStorage.removeItem("editCustomerIndex"); // 編集モード解除
+        } else {
+          // 新規登録
+          data.customers.push(customer);
+        }
+
+        saveUserData(user, data);
+
+        message.style.color = "green";
+        message.textContent = "顧客情報を保存しました！";
+
+        setTimeout(() => {
+          window.location.href = "clients.html"; // 保存後に一覧へ戻る
+        }, 1000);
+      });
+    });
+  </script>
+</body>
+</html>

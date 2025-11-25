@@ -9,7 +9,7 @@
 <body>
   <header class="page-header">
     <h1>MitsumoList</h1>
-    <p class="subtitle">見積書をスマートに管理</p>
+    <p class="subtitle">見積書を簡単に、スマートに管理</p>
   </header>
 
   <main class="card">
@@ -46,9 +46,18 @@
       localStorage.setItem("users", JSON.stringify(users));
     }
 
+    // ユーザーデータを初期化
+    function initializeUserData(username) {
+      const allData = JSON.parse(localStorage.getItem("userData") || "{}");
+      if (!allData[username]) {
+        allData[username] = { estimates: [], customers: [] };
+        localStorage.setItem("userData", JSON.stringify(allData));
+      }
+    }
+
     document.getElementById("registerForm").addEventListener("submit", async function (e) {
       e.preventDefault();
-      const username = document.getElementById("username").value;
+      const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value;
       const message = document.getElementById("message");
 
@@ -61,6 +70,10 @@
 
       const hashed = await hashPassword(password);
       saveUser(username, hashed);
+
+      // 新規ユーザー用データを作成
+      initializeUserData(username);
+
       message.style.color = "green";
       message.textContent = "登録が完了しました！ログインしてください。";
     });

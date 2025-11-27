@@ -52,7 +52,6 @@
       if (users[username] && users[username] === hashed) {
         message.style.color = "green";
         message.textContent = "ログイン成功！";
-         // ログインユーザーを記録
          localStorage.setItem("currentUser", username);
 
         setTimeout(() => {

@@ -14,11 +14,50 @@
 
   <main class="dashboard">
     <nav class="menu">
-      <a href="create-estimate.html">📄 見積書を作成</a>
-      <a href="clients.html">👥 顧客管理</a>
-      <a href="history.html">📚 見積書履歴</a>
-      <a href="login.html" class="logout">🔓 ログアウト</a>
+      <a href="create-estimate.html">見積書を作成</a>
+      <a href="clients.html">顧客管理</a>
+      <a href="history.html">見積書履歴</a>
+      <a href="#" id="logoutBtn" class="logout">ログアウト</a>
     </nav>
+
+    <section class="user-info">
+      <h2>ようこそ、<span id="usernameDisplay"></span> さん</h2>
+      <p>あなたの見積履歴と顧客データを管理できます。</p>
+    </section>
   </main>
+
+  <script>
+    function getCurrentUser() {
+      return localStorage.getItem("currentUser");
+    }
+
+    function getUserData(username) {
+      const allData = JSON.parse(localStorage.getItem("userData") || "{}");
+      return allData[username] || { estimates: [], customers: [] };
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const user = getCurrentUser();
+      if (!user) {
+        alert("ログインしてください");
+        window.location.href = "login.html";
+        return;
+      }
+
+      // ユーザー名を表示
+      document.getElementById("usernameDisplay").textContent = user;
+
+      // ユーザー専用データを取得
+      const data = getUserData(user);
+      console.log("見積履歴:", data.estimates);
+      console.log("顧客データ:", data.customers);
+    });
+
+    // ログアウト処理
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("currentUser");
+      window.location.href = "login.html";
+    });
+  </script>
 </body>
 </html>

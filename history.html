@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>MitsumoList - 見積履歴</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- jsPDF本体 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- AutoTableプラグイン -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <!-- 埋め込み済み日本語フォント -->
+  <script src="NotoSansJP.js"></script>
+</head>
+<body>
+  <a href="dashboard.html" class="back-button">← ダッシュボードへ戻る</a>
+
+  <header class="page-header">
+    <h1>見積履歴</h1>
+    <p class="subtitle">過去の見積書を管理・検索・再利用</p>
+  </header>
+
+  <main>
+    <input type="text" id="searchBox" placeholder="顧客名や見積番号で検索" />
+    <table id="historyTable">
+      <thead>
+        <tr>
+          <th>見積番号</th>
+          <th>顧客名</th>
+          <th>発行日</th>
+          <th>合計金額</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <p><a href="index.html">新しい見積を作成</a></p>
+  </main>
+
+<script>
+  function getCurrentUser(){return localStorage.getItem("currentUser");}
+  function getUserData(u){
+    const d=JSON.parse(localStorage.getItem("userData")||"{}");
+    return d[u]||{estimates:[],customers:[],nextEstimateNo:1};
+  }
+  function saveUserData(u,d){
+    const all=JSON.parse(localStorage.getItem("userData")||"{}");
+    all[u]=d;
+    localStorage.setItem("userData",JSON.stringify(all));
+  }
+
+  document.addEventListener("DOMContentLoaded",()=>{
+    const user=getCurrentUser();
+    if(!user){alert("ログインしてください");location.href="login.html";return;}
+    const data=getUserData(user);
+    const tbody=document.querySelector("#historyTable tbody");
+
+    function renderTable(filter=""){
+      tbody.innerHTML="";
+      data.estimates
+        .filter(est=>est.customerName.includes(filter)||est.estimateNo.includes(filter))
+        .forEach((est,i)=>{
+          const tr=document.createElement("tr");
+          tr.innerHTML=`
+            <td>${est.estimateNo}</td>
+            <td>${est.customerName}</td>
+            <td>${est.date}</td>
+            <td>${est.total} 円</td>
+            <td>
+              <button onclick="exportPDF(${i})">PDFプレビュー</button>
+              <button onclick="reuseEstimate(${i})">再利用</button>
+              <button onclick="convertDoc(${i},'請求書')">請求書へ変換</button>
+              <button onclick="convertDoc(${i},'納品書')">納品書へ変換</button>
+              <button onclick="deleteEstimate(${i})">削除</button>
+            </td>`;
+          tbody.appendChild(tr);
+        });
+    }
+    renderTable();
+
+    document.getElementById("searchBox").addEventListener("input",e=>{
+      renderTable(e.target.value);
+    });
+
+    // PDF出力関数を補完
+    window.exportPDF=function(idx){
+      const est=data.estimates[idx];
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFont("NotoSansJP");
+
+      // タイトル
+      const title = est.docType ? est.docType : "見積書";
+      doc.setFontSize(18);
+      doc.text(title, 105, 20, { align: "center" });
+
+      // 発行日・番号
+      doc.setFontSize(11);
+      doc.text(`発行日: ${est.date}`, 150, 20);
+      doc.text(`番号: ${est.estimateNo}`, 150, 28);
+
+      if(est.docType==="請求書" || est.docType==="納品書"){
+        doc.text(`インボイス番号: T1234567890123`, 150, 36);
+      }
+
+      // 顧客情報
+      doc.setFontSize(12);
+      doc.text("顧客情報", 10, 40);
+      doc.setFontSize(10);
+      doc.text(`顧客名: ${est.customerName}`, 15, 48);
+      doc.text(`住所: ${est.customerAddress}`, 15, 54);
+      doc.text(`担当者: ${est.customerContact}`, 15, 60);
+
+      // 自社情報
+      doc.setFontSize(12);
+      doc.text("自社情報", 110, 40);
+      doc.setFontSize(10);
+      doc.text(`会社名: ${est.companyName}`, 115, 48);
+      doc.text(`住所: ${est.companyAddress}`, 115, 54);
+      doc.text(`担当者: ${est.companyContact}`, 115, 60);
+
+      // 商品明細テーブル
+      let startY = 75;
+      doc.setFontSize(11);
+      doc.text("商品・サービス明細", 10, startY);
+      startY += 5;
+
+      doc.autoTable({
+        startY: startY,
+        head: [["名称","単価","数量","備考","税率","小計"]],
+        body: est.items.map(it => [
+          it.name,
+          `${it.price} 円`,
+          it.qty,
+          it.note,
+          `${(it.taxRate*100).toFixed(0)}%`,
+          `${(it.price*it.qty).toFixed(0)} 円`
+        ]),
+        theme: "grid",
+        styles: { font: "NotoSansJP", fontSize: 9, cellPadding: 2 }
+      });
+
+      // 合計欄
+      let finalY = doc.lastAutoTable.finalY + 10;
+      doc.setFontSize(11);
+      doc.text(`税抜合計: ${est.subtotal} 円`, 140, finalY);
+      doc.text(`消費税: ${est.tax} 円`, 140, finalY+6);
+      doc.setFontSize(12);
+      doc.text(`税込合計: ${est.total} 円`, 140, finalY+12);
+
+      // 備考欄
+      doc.setFontSize(11);
+      doc.text("備考", 10, finalY+20);
+      doc.setFontSize(10);
+      doc.text(est.notes || "", 15, finalY+28);
+
+ 
+      const pdfBlob = doc.output("blob");
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      window.open(pdfUrl); 
+    };
+
+    window.reuseEstimate=function(idx){
+      const est=data.estimates[idx];
+      const newEst={...est,estimateNo:"EST-"+data.nextEstimateNo,date:new Date().toLocaleDateString("ja-JP"),docType:null};
+      data.estimates.push(newEst);
+      data.nextEstimateNo++;
+      saveUserData(user,data);
+      alert("複製して新規作成しました");
+      location.href="index.html";
+    };
+
+    window.convertDoc=function(idx,type){
+      const est=data.estimates[idx];
+      const newEst={...est,estimateNo:type+"-"+data.nextEstimateNo,date:new Date().toLocaleDateString("ja-JP"),docType:type};
+      data.estimates.push(newEst);
+      data.nextEstimateNo++;
+      saveUserData(user,data);
+      alert(`${type}に変換しました`);
+      location.href="index.html";
+    };
+
+    window.deleteEstimate=function(idx){
+      if(confirm("この履歴を削除しますか？")){
+        data.estimates.splice(idx,1);
+        saveUserData(user,data);
+        renderTable();
+      }
+    };
+  });
+</script>
+</body>
+</html>

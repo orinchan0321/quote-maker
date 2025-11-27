@@ -1,161 +1,314 @@
-/* CSSリセット（ブラウザ差異をなくす） */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* ベース設定 */
 body {
-  font-family: sans-serif;
+  font-family: "Yu Gothic", sans-serif;
   background-color: #ffffff;
   color: #333;
-  line-height: 1.5;
+  line-height: 1.8;
+  font-size: 16px;
 }
 
-/* ヘッダー */
 .page-header {
   text-align: center;
-  padding: 20px 0;
+  padding: 30px 0;
   border-bottom: 1px solid #ddd;
 }
-
 .page-header h1 {
-  font-size: 28px;
+  font-size: 36px;
   font-weight: bold;
 }
-
 .subtitle {
-  font-size: 14px;
+  font-size: 18px;
   color: #666;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
-/* 汎用カード */
 .card {
   width: 100%;
-  max-width: 480px;
-  margin: 24px auto;
-  padding: 24px;
+  max-width: 600px;
+  margin: 32px auto;
+  padding: 32px;
   background-color: #f9f9f9;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
-/* フォーム */
 form label {
   display: block;
-  margin-top: 16px;
-  font-size: 14px;
+  margin-top: 20px;
+  font-size: 16px;
 }
-
 form input[type="text"],
 form input[type="password"] {
   width: 100%;
-  padding: 10px;
-  margin-top: 6px;
+  padding: 14px;
+  margin-top: 8px;
   border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 14px;
+  border-radius: 6px;
+  font-size: 16px;
 }
 
 button {
   width: 100%;
-  padding: 12px;
-  margin-top: 24px;
-  font-size: 15px;
+  padding: 16px;
+  margin-top: 28px;
+  font-size: 18px;
   background-color: #0078d4;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
 }
-
 button:hover {
   background-color: #005ea2;
 }
-
-/* メッセージ・リンク */
-#message {
-  margin-top: 16px;
-  text-align: center;
-  font-size: 14px;
+.back-button {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 8px 14px;
+  background: #0078d7;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 16px;
+}
+.back-button:hover {
+  background: #005a9e;
 }
 
+#message {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 16px;
+}
 .link {
   text-align: center;
-  margin-top: 16px;
-  font-size: 13px;
+  margin-top: 20px;
+  font-size: 15px;
 }
 
-/* ダッシュボードメニュー */
 .dashboard {
   width: 100%;
-  max-width: 600px;
-  margin: 32px auto;
-  padding: 0 16px;
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 0 20px;
 }
-
 .menu {
   display: flex;
   flex-direction: column;
-  gap: 24px; /* ← ここを大きくすることで項目間の余白が広がります */
-  margin-top: 32px; /* 上部との間隔も調整可能 */
+  gap: 28px;
+  margin-top: 40px;
 }
-
 .menu a {
   display: block;
-  padding: 20px; /* 内側の余白を広げてボタンを大きく */
-  font-size: 18px;
+  padding: 24px;
+  font-size: 22px;
   text-align: center;
   background-color: #ffffff;
-  border-radius: 8px;
+  border-radius: 10px;
   text-decoration: none;
   color: #2c3e50;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
   transition: transform 0.2s ease, background-color 0.2s ease;
 }
-
 .menu a:hover {
   background-color: #f0f4f8;
 }
-
 .logout {
   background-color: #f8d7da;
   color: #a94442;
 }
 
-#customerList li {
-  display: flex;
-  justify-content: space-between; /* 左に社名、右にボタン */
-  align-items: center;
-  margin: 5px 0;
+.estimate-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 30px;
+  border: 1px solid #ccc;
+  background: #fff;
+  font-size: 16px;
 }
 
-    /* 顧客一覧だけスクロールできるようにする */
-    #customerList {
-      max-height: 400px;   /* 高さを制限（必要に応じて調整） */
-      overflow-y: auto;    /* 縦スクロールを有効化 */
-      padding: 0;
-      margin: 0;
-      list-style: none;
-      border: 1px solid #ccc;
-    }
+.estimate-title {
+  text-align: center;
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
 
-    .customer-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px;
-      border-bottom: 1px solid #eee;
-    }
+.meta {
+  text-align: right;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
 
-    .btn-container {
-      display: flex;
-      gap: 5px;
-    }
+.info-block {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.info-block div {
+  width: 48%;
+  font-size: 14px;
+  line-height: 1.6;
+}
 
-    .small-btn {
-      font-size: 12px;
-      padding: 2px 6px;
-    }
+.estimate-container table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  table-layout: fixed;
+  word-wrap: break-word;
+}
+.estimate-container th,
+.estimate-container td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.4;
+  vertical-align: middle;
+}
+.estimate-container th {
+  background: #f9f9f9;
+}
+
+.estimate-container table th:nth-child(1),
+.estimate-container table td:nth-child(1) {
+  width: 32%; 
+}
+.estimate-container table th:nth-child(2),
+.estimate-container table td:nth-child(2) {
+  width: 12%; 
+}
+.estimate-container table th:nth-child(3),
+.estimate-container table td:nth-child(3) {
+  width: 9%; 
+}
+.estimate-container table th:nth-child(4),
+.estimate-container table td:nth-child(4) {
+  width: 23%; 
+}
+.estimate-container table th:nth-child(5),
+.estimate-container table td:nth-child(5) {
+  width: 14%; 
+}
+.estimate-container table th:nth-child(6),
+.estimate-container table td:nth-child(6) {
+  width: 8%;
+}
+.estimate-container table th:nth-child(7),
+.estimate-container table td:nth-child(7) {
+  width: 6%; 
+}
+
+.estimate-container input[type="text"],
+.estimate-container input[type="number"],
+.estimate-container select {
+  width: 95%;
+  padding: 6px 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.estimate-container input.name {
+  width: 98%;
+}
+.estimate-container input.note {
+  width: 96%;
+}
+.estimate-container input.price {
+  width: 85%;
+  text-align: right;
+}
+.estimate-container input.qty {
+  width: 80%;
+  text-align: right;
+  font-size: 14px;
+}
+.estimate-container select.taxRate {
+  width: 100%;
+  font-size: 12px;
+  padding: 6px 8px;
+}
+
+.estimate-container td button {
+  font-size: 12px;
+  padding: 4px 6px;
+}
+
+.totals {
+  margin-top: 20px;
+  text-align: right;
+  font-size: 14px;
+}
+.totals p {
+  margin: 2px 0;
+}
+
+.notes {
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  padding: 8px;
+  min-height: 50px;
+  font-size: 14px;
+}
+
+#historyTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-top: 20px;
+}
+#historyTable th,
+#historyTable td {
+  border: 1px solid #ccc;
+  padding: 6px 8px;
+  line-height: 1.4;
+}
+#historyTable th {
+  background: #f5f5f5;
+  font-weight: bold;
+}
+#historyTable button {
+  font-size: 12px;
+  padding: 4px 8px;
+  margin: 2px;
+  border: none;
+  border-radius: 4px;
+  background-color: #0078d4;
+  color: #fff;
+  cursor: pointer;
+}
+#historyTable button:hover {
+  background-color: #005ea2;
+}
+
+.customer-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px;
+  border-bottom: 1px solid #eee;
+}
+.btn-container {
+  display: flex;
+  gap: 4px;
+}
+.small-btn {
+  font-size: 12px;
+  padding: 2px 6px;
+  background-color: #0078d4;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.small-btn:hover {
+  background-color: #005ea2;
+}

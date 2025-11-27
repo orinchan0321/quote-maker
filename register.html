@@ -46,7 +46,6 @@
       localStorage.setItem("users", JSON.stringify(users));
     }
 
-    // ユーザーデータを初期化
     function initializeUserData(username) {
       const allData = JSON.parse(localStorage.getItem("userData") || "{}");
       if (!allData[username]) {
@@ -71,7 +70,6 @@
       const hashed = await hashPassword(password);
       saveUser(username, hashed);
 
-      // 新規ユーザー用データを作成
       initializeUserData(username);
 
       message.style.color = "green";

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>MitsumoList - 見積書</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <a href="dashboard.html" class="back-button">← ダッシュボードへ戻る</a>
+
+  <header class="page-header">
+    <h1>MitsumoList</h1>
+    <p class="subtitle">見積書を簡単に、スマートに管理</p>
+  </header>
+
+  <main class="estimate-container">
+    <div class="estimate-title">見積書</div>
+    <div class="meta">
+      <span id="estimateDate"></span>　
+      <span id="estimateNo"></span>
+    </div>
+
+    <div class="info-block">
+      <div>
+        <h3>顧客情報</h3>
+        <p>顧客名: <input type="text" id="customerName" /></p>
+        <p>住所: <input type="text" id="customerAddress" /></p>
+        <p>担当者: <input type="text" id="customerContact" /></p>
+        <p>顧客選択: 
+          <select id="customerSelect"><option value="">顧客データから選択</option></select>
+        </p>
+      </div>
+      <div>
+        <h3>自社情報</h3>
+        <p>会社名: <input type="text" id="companyName" value="株式会社サンプル" /></p>
+        <p>住所: <input type="text" id="companyAddress" value="東京都千代田区〇〇1-2-3" /></p>
+        <p>担当者: <input type="text" id="companyContact" value="営業部 山田太郎" /></p>
+      </div>
+    </div>
+
+    <h3>商品・サービス明細</h3>
+    <table id="itemsTable">
+      <thead>
+        <tr>
+          <th>名称</th><th>単価</th><th>数量</th><th>備考</th><th>税率</th><th>小計</th><th>削除</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button type="button" onclick="addRow()">＋ 行追加</button>
+
+    <div class="totals">
+      <p>税抜合計: <span id="subtotal">0</span> 円</p>
+      <p>消費税: <span id="tax">0</span> 円</p>
+      <p><strong>税込合計: <span id="total">0</span> 円</strong></p>
+    </div>
+
+    <h3>備考</h3>
+    <div class="notes" contenteditable="true">ここに支払条件や有効期限などを記載できます。</div>
+
+    <button id="saveEstimate">見積を保存</button>
+    <p class="link"><a href="history.html">見積履歴を見る</a></p>
+  </main>
+
+<script>
+  function getCurrentUser() {
+    return localStorage.getItem("currentUser");
+  }
+  function getUserData(u) {
+    const d = JSON.parse(localStorage.getItem("userData") || "{}");
+    return d[u] || { estimates: [], customers: [], nextEstimateNo: 1 };
+  }
+  function saveUserData(u, d) {
+    const all = JSON.parse(localStorage.getItem("userData") || "{}");
+    all[u] = d;
+    localStorage.setItem("userData", JSON.stringify(all));
+  }
+
+  function formatName(name, isCompany = false) {
+    if (!name) return "";
+    if (isCompany || name.includes("株式会社") || name.includes("有限会社") || name.includes("会社")) {
+      return name.replace(/御中|様/g, "") + " 御中";
+    } else {
+      return name.replace(/御中|様/g, "") + " 様";
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const today = new Date();
+    document.getElementById("estimateDate").textContent =
+      "発行日: " + today.toLocaleDateString("ja-JP");
+
+    const user = getCurrentUser();
+    if (!user) {
+      alert("ログインしてください");
+      location.href = "login.html";
+      return;
+    }
+    const data = getUserData(user);
+
+    if (!data.nextEstimateNo) data.nextEstimateNo = 1;
+    document.getElementById("estimateNo").textContent =
+      "見積番号: EST-" + data.nextEstimateNo;
+
+    const select = document.getElementById("customerSelect");
+    const inputName = document.getElementById("customerName");
+    const inputAddress = document.getElementById("customerAddress");
+    const inputContact = document.getElementById("customerContact");
+
+    // 顧客選択リスト生成
+    data.customers.forEach((c, i) => {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = c.name;
+      select.appendChild(opt);
+    });
+
+    select.addEventListener("change", () => {
+      const idx = select.value;
+      if (idx !== "") {
+        const c = data.customers[idx];
+        inputName.value = formatName(c.name, true);
+        inputAddress.value = c.address || "";
+        inputContact.value = formatName(c.contactPerson || ""); 
+      }
+    });
+  });
+
+  function addRow() {
+    const tbody = document.querySelector("#itemsTable tbody");
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td><input type="text" class="name"></td>
+      <td><input type="text" class="price" value="0"></td>
+      <td><input type="number" class="qty" value="1"></td>
+      <td><input type="text" class="note"></td>
+      <td><select class="taxRate"><option value="0.1">標準(10%)</option><option value="0.08">軽減(8%)</option></select></td>
+      <td class="right subtotal">0</td>
+      <td><button type="button" onclick="this.closest('tr').remove();calculateTotal();">削除</button></td>`;
+    tbody.appendChild(row);
+    row.querySelectorAll("input,select").forEach(el =>
+      el.addEventListener("input", calculateTotal)
+    );
+  }
+
+  function calculateTotal() {
+    let subtotal = 0;
+    let taxTotal = 0;
+    document.querySelectorAll("#itemsTable tbody tr").forEach(row => {
+      const price = parseFloat(row.querySelector(".price").value) || 0;
+      const qty = parseFloat(row.querySelector(".qty").value) || 0;
+      const taxRate = parseFloat(row.querySelector(".taxRate").value) || 0;
+      const rowSubtotal = price * qty;
+      row.querySelector(".subtotal").textContent = rowSubtotal.toFixed(0);
+      subtotal += rowSubtotal;
+      taxTotal += rowSubtotal * taxRate;
+    });
+
+    document.getElementById("subtotal").textContent = subtotal.toFixed(0);
+    document.getElementById("tax").textContent = taxTotal.toFixed(0);
+    document.getElementById("total").textContent = (subtotal + taxTotal).toFixed(0);
+  }
+
+  document.getElementById("saveEstimate").addEventListener("click", () => {
+    const user = getCurrentUser();
+    if (!user) {
+      alert("ログインしてください");
+      return;
+    }
+    const data = getUserData(user);
+
+    const customerName = document.getElementById("customerName").value;
+    const customerAddress = document.getElementById("customerAddress").value;
+    const customerContact = document.getElementById("customerContact").value;
+
+    const companyName = document.getElementById("companyName").value;
+    const companyAddress = document.getElementById("companyAddress").value;
+    const companyContact = document.getElementById("companyContact").value;
+
+    const items = [];
+    document.querySelectorAll("#itemsTable tbody tr").forEach(row => {
+      items.push({
+        name: row.querySelector(".name").value,
+        price: parseFloat(row.querySelector(".price").value) || 0,
+        qty: parseFloat(row.querySelector(".qty").value) || 0,
+        note: row.querySelector(".note").value,
+        taxRate: parseFloat(row.querySelector(".taxRate").value) || 0
+      });
+    });
+
+    const subtotal = parseFloat(document.getElementById("subtotal").textContent) || 0;
+    const tax = parseFloat(document.getElementById("tax").textContent) || 0;
+    const total = parseFloat(document.getElementById("total").textContent) || 0;
+
+    const notes = document.querySelector(".notes").innerText;
+
+    const estimate = {
+      estimateNo: "EST-" + data.nextEstimateNo,
+      customerName,
+      customerAddress,
+      customerContact,
+      companyName,
+      companyAddress,
+      companyContact,
+      items,
+      subtotal,
+      tax,
+      total,
+      date: new Date().toLocaleDateString("ja-JP"),
+      notes
+    };
+
+    data.estimates.push(estimate);
+    data.nextEstimateNo++;
+    saveUserData(user, data);
+
+    alert("見積を保存しました！");
+    location.href = "history.html";
+  });
+
+  // 初期行追加
+  addRow();
+</script>

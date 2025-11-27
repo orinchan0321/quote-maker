@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <a href="dashboard.html" class="back-button">← ダッシュボードへ戻る</a>
+
   <header class="page-header">
     <h1>MitsumoList</h1>
     <p class="subtitle">見積書を簡単に、スマートに管理</p>
@@ -35,6 +37,12 @@
       localStorage.setItem("userData", JSON.stringify(allData));
     }
 
+    function sortCustomers(customers) {
+      return customers.slice().sort((a, b) =>
+        a.name.localeCompare(b.name, "ja")
+      );
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
       const user = getCurrentUser();
       if (!user) {
@@ -55,7 +63,7 @@
           li.classList.add("customer-item");
 
           const textSpan = document.createElement("span");
-          textSpan.textContent = `${c.name}（担当: ${c.contactPerson}）`;
+          textSpan.textContent = `${c.name}（担当: ${c.contactPerson || "未設定"}）`;
 
           const editBtn = document.createElement("button");
           editBtn.textContent = "編集";
@@ -84,10 +92,10 @@
       }
 
       function deleteCustomer(index) {
-        if (confirm("この顧客を削除しますか？")) {
+        if (confirm(`${data.customers[index].name} を削除しますか？`)) {
           data.customers.splice(index, 1);
           saveUserData(user, data);
-          renderList(data.customers);
+          renderList(sortCustomers(data.customers));
         }
       }
 
@@ -96,10 +104,10 @@
         const filtered = data.customers.filter(c =>
           c.name.toLowerCase().includes(keyword)
         );
-        renderList(filtered);
+        renderList(sortCustomers(filtered));
       });
 
-      renderList(data.customers);
+      renderList(sortCustomers(data.customers));
     });
   </script>
 </body>

@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <a href="dashboard.html" class="back-button">← ダッシュボードへ戻る</a>
+
   <header class="page-header">
     <h1>MitsumoList</h1>
     <p class="subtitle">見積書を簡単に、スマートに管理</p>
@@ -61,13 +63,13 @@
       const form = document.getElementById("customerForm");
       const message = document.getElementById("message");
 
-      // 編集対象インデックスを取得
       const editIndex = localStorage.getItem("editCustomerIndex");
+      const index = editIndex !== null ? parseInt(editIndex, 10) : null;
 
-      if (editIndex !== null) {
-        const c = data.customers[editIndex];
+    
+      if (index !== null) {
+        const c = data.customers[index];
         if (c) {
-          // フォームに既存データを表示
           document.getElementById("name").value = c.name;
           document.getElementById("address").value = c.address;
           document.getElementById("contactPerson").value = c.contactPerson;
@@ -78,18 +80,22 @@
       form.addEventListener("submit", (e) => {
         e.preventDefault();
         const customer = {
-          name: document.getElementById("name").value,
-          address: document.getElementById("address").value,
-          contactPerson: document.getElementById("contactPerson").value,
-          invoiceNumber: document.getElementById("invoiceNumber").value,
+          name: document.getElementById("name").value.trim(),
+          address: document.getElementById("address").value.trim(),
+          contactPerson: document.getElementById("contactPerson").value.trim(),
+          invoiceNumber: document.getElementById("invoiceNumber").value.trim(),
         };
 
-        if (editIndex !== null) {
-          // 編集モード → 上書き
-          data.customers[editIndex] = customer;
-          localStorage.removeItem("editCustomerIndex"); // 編集モード解除
+        if (!customer.name) {
+          message.style.color = "red";
+          message.textContent = "顧客名は必須です";
+          return;
+        }
+
+        if (index !== null) {
+          data.customers[index] = customer;
+          localStorage.removeItem("editCustomerIndex");
         } else {
-          // 新規登録
           data.customers.push(customer);
         }
 
@@ -99,8 +105,8 @@
         message.textContent = "顧客情報を保存しました！";
 
         setTimeout(() => {
-          window.location.href = "clients.html"; // 保存後に一覧へ戻る
-        }, 1000);
+          window.location.href = "clients.html";
+        }, 1500);
       });
     });
   </script>
